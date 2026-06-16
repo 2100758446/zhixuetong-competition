@@ -1,0 +1,61 @@
+# ───────────────────────────────────────────
+# 阿里云函数计算 FC 部署配置 (Serverless Devs)
+# 需要先安装: npm i -g @serverless-devs/s
+# 部署命令: s deploy
+# ───────────────────────────────────────────
+edition: 1.0.0
+name: zhixuetong
+access: default
+vars:
+  region: cn-hangzhou
+  service: zhixuetong-app
+
+services:
+  zhixuetong-flask:
+    component: fc
+    props:
+      region: ${vars.region}
+      service:
+        name: ${vars.service}
+        description: 智学通 AI校园学习助手
+      function:
+        name: flask-app
+        description: Flask 全栈应用
+        runtime: custom
+        codeUri: ./
+        handler: not-used
+        memorySize: 512
+        timeout: 60
+        instanceConcurrency: 10
+        cpu: 0.5
+        diskSize: 512
+        runtimeConfig:
+          command:
+            - python3
+          args:
+            - fc_handler.py
+        environmentVariables:
+          FC_SERVER_PORT: "9000"
+          PYTHONUNBUFFERED: "1"
+      triggers:
+        - name: httpTrigger
+          type: http
+          config:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+
+  # ── 静态资源托管 (前端) ──
+  zhixuetong-static:
+    component: website
+    props:
+      region: ${vars.region}
+      bucket: zhixuetong-static-assets
+      codeUri: ./static
+      index: index.html
+      error: 404.html
