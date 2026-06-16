@@ -10,7 +10,9 @@
     "dev:server": "cd server && node index.js",
     "seed": "node server/seed.js",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build:prod": "vite build",
+    "preview": "vite preview",
+    "start": "NODE_ENV=production node server/index.js"
   },
   "dependencies": {
     "axios": "^1.17.0",

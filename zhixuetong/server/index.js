@@ -16,11 +16,22 @@ const {
 } = require('./userStore')
 
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT || 3000
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 // ── 中间件 ──
-app.use(cors({ origin: 'http://localhost:5173' }))
-app.use(express.json())
+if (IS_PRODUCTION) {
+  // 生产环境：允许 Render 域名访问
+  app.use(cors())
+  app.use(express.json())
+  // 提供 Vue 构建后的静态文件
+  const path = require('path')
+  const distPath = path.join(__dirname, '..', 'dist')
+  app.use(express.static(distPath))
+} else {
+  app.use(cors({ origin: 'http://localhost:5173' }))
+  app.use(express.json())
+}
 
 // ── 异步启动：先初始化数据库，再确保 demo 账号 + 迁移旧数据 ──
 async function start() {
@@ -539,8 +550,19 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() })
 })
 
+  // SPA fallback for production
+  if (IS_PRODUCTION) {
+    const path = require("path")
+    const distPath = path.join(__dirname, "..", "dist")
+    app.get("*", (req, res, next) => {
+      if (req.path.startsWith("/api")) return next()
+      res.sendFile(path.join(distPath, "index.html"))
+    })
+  }
+
   app.listen(PORT, () => {
-    console.log(`✅ 后端服务已启动: http://localhost:${PORT}`)
+    console.log(`✅ Backend: http://localhost:${PORT}`)
+    if (IS_PRODUCTION) console.log("Production: serving static files")
   })
 }
 
