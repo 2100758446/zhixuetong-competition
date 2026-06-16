@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}登录 - 智学通{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <h2>欢迎回来 👋</h2>
+                <p class="text-muted">登录智学通，继续你的学习之旅</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-person"></i> 用户名
+                    </label>
+                    <input type="text" name="username" class="form-control form-control-lg"
+                           placeholder="请输入用户名" required autocomplete="username">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-lock"></i> 密码
+                    </label>
+                    <div class="input-group input-group-lg">
+                        <input type="password" name="password" class="form-control"
+                               placeholder="请输入密码" required autocomplete="current-password"
+                               id="loginPassword">
+                        <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 auth-btn">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>登录
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>还没有账号？<a href="{{ url_for('register') }}">立即注册</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const pwd = document.getElementById('loginPassword');
+    const icon = this.querySelector('i');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        pwd.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+});
+</script>
+{% endblock %}

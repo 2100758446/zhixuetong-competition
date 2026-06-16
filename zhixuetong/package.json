@@ -1,0 +1,37 @@
+{
+  "name": "zhixuetong",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "setup": "npm install && cd server && npm install && cd .. && node server/seed.js",
+    "dev": "concurrently \"vite\" \"cd server && node index.js\"",
+    "dev:client": "vite",
+    "dev:server": "cd server && node index.js",
+    "seed": "node server/seed.js",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.17.0",
+    "echarts": "^6.1.0",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.2.0",
+    "markdown-it-mathjax3": "^5.2.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.34",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.12.3",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "@vue/tsconfig": "^0.9.1",
+    "concurrently": "^10.0.3",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vue-tsc": "^3.2.8"
+  }
+}

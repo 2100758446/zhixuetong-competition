@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}智学通 - AI校园学习助手{% endblock %}</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- ECharts (用于知识图谱) -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.1/echarts.min.js"></script>
+    <!-- Chart.js (用于统计图表) -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <!-- Marked (用于Markdown渲染) -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <div class="brand-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <span class="brand-text ms-2">智学通</span>
+            </a>
+
+            {% if current_user %}
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar-sm">
+                                {{ current_user.username[0] | upper }}
+                            </div>
+                            <span class="ms-2 d-none d-md-inline">{{ current_user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text text-muted small">
+                                <i class="bi bi-calendar-check"></i>
+                                学习天数：{{ (now() - current_user.created_at).days if now is defined else '...' }}
+                            </span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> 退出登录
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- 主体布局 -->
+    <div class="main-container">
+        {% if current_user %}
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <nav class="sidebar-nav">
+                    <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint == 'index' %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>学习仪表盘</span>
+                    </a>
+                    <a href="{{ url_for('chat_page') }}" class="sidebar-link {% if request.endpoint == 'chat_page' %}active{% endif %}">
+                        <i class="bi bi-robot"></i>
+                        <span>AI智能问答</span>
+                    </a>
+                    <a href="{{ url_for('planner') }}" class="sidebar-link {% if request.endpoint == 'planner' %}active{% endif %}">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>学习计划</span>
+                    </a>
+                    <a href="{{ url_for('knowledge') }}" class="sidebar-link {% if request.endpoint == 'knowledge' %}active{% endif %}">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>知识图谱</span>
+                    </a>
+                    <a href="{{ url_for('notes_page') }}" class="sidebar-link {% if request.endpoint == 'notes_page' %}active{% endif %}">
+                        <i class="bi bi-journal-text"></i>
+                        <span>学习笔记</span>
+                    </a>
+                    <a href="{{ url_for('settings_page') }}" class="sidebar-link {% if request.endpoint == 'settings_page' %}active{% endif %}">
+                        <i class="bi bi-gear"></i>
+                        <span>系统设置</span>
+                    </a>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="sidebar-card">
+                        <div class="sidebar-card-icon">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <p class="small">配好AI Key<br>解锁全部智能功能</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- 内容区域 -->
+        <main class="main-content" id="mainContent">
+            <!-- Flash消息 -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show custom-alert" role="alert">
+                    <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

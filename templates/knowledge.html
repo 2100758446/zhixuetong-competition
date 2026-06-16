@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}知识图谱 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-diagram-3"></i> 知识图谱
+    </h1>
+    <p class="page-subtitle">可视化知识体系，清晰把握学习脉络</p>
+</div>
+
+<div class="row g-3">
+    <!-- 左侧：图谱 -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-graph-up"></i> 知识关系图</h5>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="resetGraph()">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="toggleAIGraph(event)">
+                        <i class="bi bi-robot"></i> AI扩展
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="knowledgeGraph" style="width:100%;height:500px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：知识点列表 -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6><i class="bi bi-funnel"></i> 学科筛选</h6>
+            </div>
+            <div class="card-body">
+                <div class="subject-filter-list">
+                    {% for subject, categories in knowledge_graph.items() %}
+                    <button class="subject-filter-btn active" onclick="filterSubject('{{ subject }}', this)">
+                        <span class="subject-dot" style="background:{{ ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4']|random if false else ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'][loop.index0 % 6] }}"></span>
+                        {{ subject }}
+                        <span class="badge bg-light text-dark ms-1">{{ categories|length }}类</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-list-ul"></i> 知识点详情</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="knowledge-detail" id="knowledgeDetail">
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-hand-index" style="font-size:2rem;"></i>
+                        <p class="mt-2">点击图谱中的节点查看详情</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-bookmark"></i> 全部知识点</h6>
+            </div>
+            <div class="card-body">
+                {% for subject, categories in knowledge_graph.items() %}
+                <div class="knowledge-group mb-3">
+                    <h6 class="knowledge-group-title">{{ subject }}</h6>
+                    {% for cat_name, points in categories.items() %}
+                    <div class="knowledge-category">
+                        <span class="badge bg-primary mb-1">{{ cat_name }}</span>
+                        <div class="knowledge-points">
+                            {% for point in points %}
+                            <span class="knowledge-tag" onclick="highlightNode('{{ point }}')">{{ point }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/knowledge.js') }}"></script>
+<script>
+// 初始化知识图谱数据
+const graphData = {{ knowledge_graph | tojson | safe }};
+initKnowledgeGraph(graphData);
+</script>
+{% endblock %}

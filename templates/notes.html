@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}学习笔记 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="bi bi-journal-text"></i> 学习笔记
+            </h1>
+            <p class="page-subtitle">记录学习心得，AI帮你总结提炼重点</p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" onclick="showNoteEditor()">
+                <i class="bi bi-plus-lg me-2"></i>新建笔记
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 笔记编辑器（默认隐藏） -->
+<div class="card mb-3" id="noteEditor" style="display:none;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-pencil-square"></i> <span id="editorTitle">新建笔记</span></h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="hideNoteEditor()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <input type="text" class="form-control form-control-lg" id="noteTitle"
+                   placeholder="笔记标题...">
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-md-6">
+                <select class="form-select" id="noteSubject">
+                    <option value="通用">📖 通用</option>
+                    <option value="数据结构">🔗 数据结构</option>
+                    <option value="算法设计">⚡ 算法设计</option>
+                    <option value="C++编程">💻 C++编程</option>
+                    <option value="计算机网络">🌐 计算机网络</option>
+                    <option value="操作系统">⚙️ 操作系统</option>
+                    <option value="数据库">🗄️ 数据库</option>
+                    <option value="高等数学">📐 高等数学</option>
+                    <option value="其他">📝 其他</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="noteTags"
+                       placeholder="标签（用逗号分隔，如：链表,数据结构）">
+            </div>
+        </div>
+        <div class="mb-3">
+            <textarea class="form-control" id="noteContent" rows="10"
+                      placeholder="在这里写下你的笔记内容...支持Markdown格式"></textarea>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="saveNote()">
+                <i class="bi bi-check-lg me-1"></i>保存笔记
+            </button>
+            <button class="btn btn-outline-info" onclick="aiSummarize()">
+                <i class="bi bi-robot me-1"></i>AI智能总结
+            </button>
+            <input type="hidden" id="editingNoteId" value="">
+        </div>
+        <!-- AI总结结果 -->
+        <div class="mt-3" id="aiSummaryResult" style="display:none;">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6><i class="bi bi-stars text-warning"></i> AI总结</h6>
+                    <div class="markdown-body" id="aiSummaryContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 笔记列表 -->
+<div class="row g-3" id="notesList">
+    {% if notes %}
+    {% for note in notes %}
+    <div class="col-xl-4 col-lg-6" id="note-card-{{ note.id }}">
+        <div class="card note-card h-100">
+            <div class="card-body">
+                <div class="note-card-header">
+                    <h6 class="note-title">{{ note.title }}</h6>
+                    <div class="note-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editNote({{ note.id }})" title="编辑">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote({{ note.id }})" title="删除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <span class="badge bg-info mb-2">{{ note.subject }}</span>
+                <p class="note-preview">{{ note.content[:150] }}{% if note.content|length > 150 %}...{% endif %}</p>
+                {% if note.tags %}
+                <div class="note-tags">
+                    {% for tag in note.tags.split(',') %}
+                    <span class="note-tag">{{ tag.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if note.ai_summary %}
+                <div class="note-ai-summary mt-2">
+                    <small class="text-muted"><i class="bi bi-robot"></i> AI摘要：{{ note.ai_summary[:100] }}...</small>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted small">
+                <i class="bi bi-clock"></i> {{ note.updated_at }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-journal-plus" style="font-size:4rem;"></i>
+            <h4 class="mt-3">还没有笔记</h4>
+            <p>点击右上角「新建笔记」开始记录你的学习心得吧！</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentNoteId = null;
+
+function showNoteEditor(noteId) {
+    document.getElementById('noteEditor').style.display = 'block';
+    if (!noteId) {
+        document.getElementById('editorTitle').textContent = '新建笔记';
+        document.getElementById('noteTitle').value = '';
+        document.getElementById('noteContent').value = '';
+        document.getElementById('noteTags').value = '';
+        document.getElementById('noteSubject').value = '通用';
+        document.getElementById('editingNoteId').value = '';
+        document.getElementById('aiSummaryResult').style.display = 'none';
+    }
+}
+
+function hideNoteEditor() {
+    document.getElementById('noteEditor').style.display = 'none';
+}
+
+async function saveNote() {
+    const title = document.getElementById('noteTitle').value.trim();
+    const content = document.getElementById('noteContent').value.trim();
+    const tags = document.getElementById('noteTags').value.trim();
+    const subject = document.getElementById('noteSubject').value;
+    const editId = document.getElementById('editingNoteId').value;
+
+    if (!title) { alert('请输入笔记标题！'); return; }
+
+    const url = editId ? `/api/notes/${editId}` : '/api/notes';
+    const method = editId ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content, tags, subject })
+        });
+        const data = await res.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('保存失败: ' + data.error);
+        }
+    } catch (err) {
+        alert('网络错误: ' + err.message);
+    }
+}
+
+async function editNote(id) {
+    try {
+        const res = await fetch(`/api/notes/${id}`);
+        const data = await res.json();
+        if (data.success) {
+            const note = data.note;
+            document.getElementById('noteEditor').style.display = 'block';
+            document.getElementById('editorTitle').textContent = '编辑笔记';
+            document.getElementById('noteTitle').value = note.title;
+            document.getElementById('noteContent').value = note.content;
+            document.getElementById('noteTags').value = note.tags;
+            document.getElementById('noteSubject').value = note.subject;
+            document.getElementById('editingNoteId').value = note.id;
+
+            if (note.ai_summary) {
+                document.getElementById('aiSummaryResult').style.display = 'block';
+                document.getElementById('aiSummaryContent').innerHTML = marked.parse(note.ai_summary);
+            }
+        }
+    } catch (err) {
+        alert('加载失败: ' + err.message);
+    }
+}
+
+async function deleteNote(id) {
+    if (!confirm('确定删除这条笔记吗？此操作不可恢复！')) return;
+    try {
+        const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`note-card-${id}`).remove();
+            if (document.getElementById('editingNoteId').value == id) {
+                hideNoteEditor();
+            }
+        }
+    } catch (err) {
+        alert('删除失败: ' + err.message);
+    }
+}
+
+async function aiSummarize() {
+    const content = document.getElementById('noteContent').value.trim();
+    if (!content) { alert('请先输入笔记内容！'); return; }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>AI分析中...';
+
+    try {
+        const res = await fetch('/api/summarize-note', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('aiSummaryResult').style.display = 'block';
+            document.getElementById('aiSummaryContent').innerHTML = marked.parse(data.summary);
+        } else {
+            alert('总结失败: ' + data.error);
+        }
+    } catch (err) {
+        alert('网络错误: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-robot me-1"></i>AI智能总结';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}学习仪表盘 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h1 class="page-title">
+                欢迎回来，{{ current_user.username }} 👋
+            </h1>
+            <p class="page-subtitle">
+                <i class="bi bi-calendar3"></i>
+                今天是 <span id="todayDate"></span>
+                · 已坚持学习 <strong>{{ total_study_days }}</strong> 天
+                · 继续加油！💪
+            </p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('chat_page') }}" class="btn btn-primary btn-lg pulse-btn">
+                <i class="bi bi-robot me-2"></i>开始AI学习
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row stats-cards g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ notes_count }}</h3>
+                    <p>学习笔记</p>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{{ url_for('notes_page') }}">查看笔记 <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-green">
+            <div class="stat-card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ plans_count }}</h3>
+                    <p>学习计划</p>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{{ url_for('planner') }}">制定计划 <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-purple">
+            <div class="stat-card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_study_days }}</h3>
+                    <p>坚持天数</p>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <span>继续保持！</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-orange">
+            <div class="stat-card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>24/7</h3>
+                    <p>AI随时待命</p>
+                </div>
+            </div>
+            <div class="stat-card-footer">
+                <a href="{{ url_for('chat_page') }}">去提问 <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快捷入口 + 图表 -->
+<div class="row g-3 mb-4">
+    <!-- 快捷功能 -->
+    <div class="col-lg-4">
+        <div class="card quick-actions-card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning-charge"></i> 快捷功能</h5>
+            </div>
+            <div class="card-body">
+                <div class="quick-action-grid">
+                    <a href="{{ url_for('chat_page') }}" class="quick-action-item">
+                        <div class="qa-icon qa-icon-blue">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <span>AI问答</span>
+                    </a>
+                    <a href="{{ url_for('planner') }}" class="quick-action-item">
+                        <div class="qa-icon qa-icon-green">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <span>制定计划</span>
+                    </a>
+                    <a href="{{ url_for('knowledge') }}" class="quick-action-item">
+                        <div class="qa-icon qa-icon-purple">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <span>知识图谱</span>
+                    </a>
+                    <a href="{{ url_for('notes_page') }}" class="quick-action-item">
+                        <div class="qa-icon qa-icon-orange">
+                            <i class="bi bi-pencil-square"></i>
+                        </div>
+                        <span>记笔记</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 本周学习趋势 -->
+    <div class="col-lg-8">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart-line"></i> 本周学习趋势</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 学习提示 -->
+<div class="card tip-card mb-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="tip-icon">
+                <i class="bi bi-lightbulb-fill"></i>
+            </div>
+            <div class="ms-3">
+                <h6 class="mb-1">💡 学习小贴士</h6>
+                <p class="mb-0 text-muted" id="dailyTip"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// 今日日期
+const now = new Date();
+document.getElementById('todayDate').textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 星期${['日','一','二','三','四','五','六'][now.getDay()]}`;
+
+// 学习小贴士
+const tips = [
+    '费曼学习法：尝试把知识点讲给一个完全不懂的人听，能讲清楚才说明真懂了。',
+    '番茄工作法：25分钟专注学习 + 5分钟休息，保持高效的学习节奏。',
+    '间隔重复：学完新知识后的第1、3、7天进行复习，记忆效果最佳。',
+    '主动回忆：合上书本，尝试回忆刚才学的内容，比反复阅读有效得多。',
+    '交替学习：不要长时间只学一门课，交替不同学科可以提升学习效率。',
+    '充足睡眠：睡眠是记忆巩固的关键，熬夜学习的效率其实很低。',
+    '教是最好的学：找学习伙伴互相讲解，或者录视频讲给自己听。',
+];
+document.getElementById('dailyTip').textContent = tips[now.getDay()];
+
+// 本周学习趋势图
+const ctx = document.getElementById('weeklyChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        datasets: [{
+            label: '学习时长 (小时)',
+            data: {{ weekly_stats | map(attribute='hours') | list | tojson }},
+            backgroundColor: 'rgba(99, 102, 241, 0.7)',
+            borderColor: 'rgba(99, 102, 241, 1)',
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false,
+        }, {
+            label: '完成任务 (个)',
+            data: {{ weekly_stats | map(attribute='tasks') | list | tojson }},
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderColor: 'rgba(16, 185, 129, 1)',
+            borderWidth: 1,
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: { usePointStyle: true, padding: 20 }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}AI智能问答 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-robot"></i> AI智能问答
+    </h1>
+    <p class="page-subtitle">基于大语言模型的智能学习助手，随时随地解答你的疑问</p>
+</div>
+
+<div class="chat-container">
+    <!-- 聊天区域 -->
+    <div class="chat-main">
+        <!-- 消息列表 -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-welcome">
+                <div class="welcome-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <h3>你好！我是智学通AI助手 🤖</h3>
+                <p>我可以帮你解答学习问题、讲解知识点、分析代码、提供学习建议</p>
+                <div class="suggestion-chips">
+                    <span class="suggestion-label">试试问我：</span>
+                    <button class="chip" onclick="sendPreset('请用简单的话解释什么是动态规划？')">什么是动态规划？</button>
+                    <button class="chip" onclick="sendPreset('C语言中指针和引用的区别是什么？')">指针和引用的区别</button>
+                    <button class="chip" onclick="sendPreset('二叉树有哪些遍历方式？请举例说明')">二叉树遍历方式</button>
+                    <button class="chip" onclick="sendPreset('帮我分析快速排序的时间复杂度')">快速排序时间复杂度</button>
+                    <button class="chip" onclick="sendPreset('如何高效准备程序设计竞赛？')">如何准备竞赛？</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="chat-input-area">
+            <div class="chat-input-container">
+                <div class="input-group">
+                    <textarea class="form-control" id="chatInput"
+                              placeholder="输入你的问题，按 Enter 发送，Shift+Enter 换行..."
+                              rows="2" onkeydown="handleKeyDown(event)"></textarea>
+                    <button class="btn btn-primary" id="sendBtn" onclick="sendMessage()">
+                        <i class="bi bi-send-fill"></i>
+                        <span class="d-none d-md-inline ms-1">发送</span>
+                    </button>
+                </div>
+                <div class="chat-input-hint">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        智能问答支持 Markdown 格式 · AI回答仅供参考
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-section">
+            <h6><i class="bi bi-lightbulb"></i> 学习主题</h6>
+            <div class="subject-list">
+                <button class="subject-btn" onclick="sendPreset('请帮我梳理数据结构的知识体系')">
+                    📚 数据结构
+                </button>
+                <button class="subject-btn" onclick="sendPreset('常见的排序算法有哪些？对比它们的优缺点')">
+                    🔢 排序算法
+                </button>
+                <button class="subject-btn" onclick="sendPreset('C++ STL常用容器总结')">
+                    💻 C++ STL
+                </button>
+                <button class="subject-btn" onclick="sendPreset('计算机网络OSI模型各层详解')">
+                    🌐 计算机网络
+                </button>
+                <button class="subject-btn" onclick="sendPreset('操作系统进程调度算法对比')">
+                    ⚙️ 操作系统
+                </button>
+                <button class="subject-btn" onclick="sendPreset('数据库索引原理及优化方法')">
+                    🗄️ 数据库
+                </button>
+            </div>
+        </div>
+        <div class="chat-sidebar-section">
+            <h6><i class="bi bi-gear"></i> AI模式</h6>
+            <div class="ai-status">
+                <span class="status-dot" id="aiStatusDot"></span>
+                <span id="aiStatusText">检查中...</span>
+            </div>
+            <p class="small text-muted mt-2">
+                当前使用内置智能回复系统。配置DeepSeek API Key后可获得更强大的AI能力。
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}系统设置 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-gear"></i> 系统设置
+    </h1>
+    <p class="page-subtitle">配置AI大模型API，开启真正的智能学习体验</p>
+</div>
+
+<div class="row g-3">
+    <!-- API配置 -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-cloud-arrow-up"></i> AI API 配置</h5>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm" onsubmit="saveSettings(event)">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-cpu"></i> API 平台
+                        </label>
+                        <select class="form-select" id="api_provider" onchange="onProviderChange()">
+                            <option value="deepseek" {% if settings.api_provider == 'deepseek' %}selected{% endif %}>
+                                DeepSeek（推荐 · 注册送免费额度）
+                            </option>
+                            <option value="zhipu" {% if settings.api_provider == 'zhipu' %}selected{% endif %}>
+                                智谱AI (GLM)
+                            </option>
+                            <option value="qwen" {% if settings.api_provider == 'qwen' %}selected{% endif %}>
+                                通义千问 (Qwen)
+                            </option>
+                        </select>
+                        <div class="form-text" id="providerHelp">
+                            <a href="https://platform.deepseek.com/" target="_blank">
+                                <i class="bi bi-box-arrow-up-right"></i> 点击注册DeepSeek（免费）
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-key"></i> API Key
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg"
+                                   id="api_key" name="api_key"
+                                   value="{{ settings.api_key }}"
+                                   placeholder="sk-xxxxxxxxxxxxxxxx">
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="toggleKeyVisibility()">
+                                <i class="bi bi-eye" id="keyEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            注册后在对应平台的「API Keys」页面创建密钥，粘贴到这里
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="urlGroup">
+                        <label class="form-label">
+                            <i class="bi bi-link-45deg"></i> API 地址
+                        </label>
+                        <input type="text" class="form-control" id="api_url"
+                               value="{{ settings.api_url }}"
+                               placeholder="https://api.deepseek.com/v1/chat/completions">
+                        <div class="form-text">默认地址一般不用改，除非平台更新了接口</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-box"></i> 模型名称
+                        </label>
+                        <input type="text" class="form-control" id="api_model"
+                               value="{{ settings.api_model }}"
+                               placeholder="deepseek-chat">
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-lg me-2"></i>保存设置
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-lg"
+                                onclick="testConnection()">
+                            <i class="bi bi-lightning-charge me-2"></i>测试连接
+                        </button>
+                    </div>
+
+                    <div class="mt-3" id="testResult" style="display:none;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明 -->
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> 如何获取免费API Key</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary">推荐：DeepSeek</h6>
+                    <ol class="small">
+                        <li>打开 <a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a></li>
+                        <li>用手机号注册账号</li>
+                        <li>进入「API Keys」页面</li>
+                        <li>点击「创建新的API Key」</li>
+                        <li>复制Key粘贴到左侧</li>
+                    </ol>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <h6 class="text-success">备选：智谱AI</h6>
+                    <ol class="small">
+                        <li>打开 <a href="https://open.bigmodel.cn/" target="_blank">open.bigmodel.cn</a></li>
+                        <li>注册后进入控制台</li>
+                        <li>获取API Key填入左侧</li>
+                    </ol>
+                </div>
+                <hr>
+                <h6 class="text-warning"><i class="bi bi-exclamation-triangle"></i> 注意</h6>
+                <ul class="small">
+                    <li>不填API Key也能用，系统会使用内置智能回复</li>
+                    <li>Key只保存在本地，不会上传到任何地方</li>
+                    <li>新注册用户通常有免费额度，够比赛演示用</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-cpu"></i> 当前状态</h6>
+            </div>
+            <div class="card-body">
+                <div id="statusInfo">
+                    {% if settings.api_key %}
+                    <div class="text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        API Key 已配置
+                        <br><small class="text-muted">平台: {{ settings.api_provider }}</small>
+                    </div>
+                    {% else %}
+                    <div class="text-warning">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        未配置API Key · 使用内置智能模式
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function onProviderChange() {
+    const provider = document.getElementById('api_provider').value;
+    const urlMap = {
+        'deepseek': 'https://api.deepseek.com/v1/chat/completions',
+        'zhipu': 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+        'qwen': 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    };
+    const modelMap = {
+        'deepseek': 'deepseek-chat',
+        'zhipu': 'glm-4-flash',
+        'qwen': 'qwen-turbo',
+    };
+    document.getElementById('api_url').value = urlMap[provider] || '';
+    document.getElementById('api_model').value = modelMap[provider] || '';
+
+    const helpLinks = {
+        'deepseek': '<a href="https://platform.deepseek.com/" target="_blank">点击注册DeepSeek（免费）</a>',
+        'zhipu': '<a href="https://open.bigmodel.cn/" target="_blank">点击注册智谱AI（免费）</a>',
+        'qwen': '<a href="https://dashscope.aliyun.com/" target="_blank">点击注册通义千问</a>',
+    };
+    document.getElementById('providerHelp').innerHTML =
+        '<i class="bi bi-box-arrow-up-right"></i> ' + (helpLinks[provider] || '');
+}
+
+function toggleKeyVisibility() {
+    const input = document.getElementById('api_key');
+    const icon = document.getElementById('keyEyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+async function saveSettings(e) {
+    e.preventDefault();
+    const data = {
+        api_provider: document.getElementById('api_provider').value,
+        api_key: document.getElementById('api_key').value.trim(),
+        api_url: document.getElementById('api_url').value.trim(),
+        api_model: document.getElementById('api_model').value.trim(),
+    };
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>保存中...';
+
+    try {
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+            showToast('设置已保存！', 'success');
+            location.reload();
+        } else {
+            showToast('保存失败: ' + result.message, 'error');
+        }
+    } catch (err) {
+        showToast('网络错误: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>保存设置';
+    }
+}
+
+async function testConnection() {
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="alert alert-info"><span class="spinner-border spinner-border-sm me-2"></span>正在测试连接...</div>';
+
+    // 先保存当前设置
+    const data = {
+        api_provider: document.getElementById('api_provider').value,
+        api_key: document.getElementById('api_key').value.trim(),
+        api_url: document.getElementById('api_url').value.trim(),
+        api_model: document.getElementById('api_model').value.trim(),
+    };
+
+    try {
+        // 保存设置
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        // 测试连接
+        const res = await fetch('/api/test-ai', {method: 'POST'});
+        const result = await res.json();
+
+        if (result.success) {
+            resultDiv.innerHTML = '<div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>' + result.message + '</div>';
+        } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + result.message + '</div>';
+        }
+    } catch (err) {
+        resultDiv.innerHTML = '<div class="alert alert-danger">网络错误: ' + err.message + '</div>';
+    }
+}
+</script>
+{% endblock %}

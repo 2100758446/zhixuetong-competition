@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}学习计划 - 智学通{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="bi bi-calendar-check"></i> AI学习计划生成器
+    </h1>
+    <p class="page-subtitle">输入你的学习目标，AI自动生成详细的学习计划</p>
+</div>
+
+<div class="row g-3">
+    <!-- 左侧：生成表单 -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-magic"></i> 生成新计划</h5>
+            </div>
+            <div class="card-body">
+                <form id="planForm" onsubmit="generatePlan(event)">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-book"></i> 学科名称 <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="subject" name="subject">
+                            <option value="">请选择学科</option>
+                            <option value="数据结构与算法">数据结构与算法</option>
+                            <option value="C语言程序设计">C语言程序设计</option>
+                            <option value="C++面向对象编程">C++面向对象编程</option>
+                            <option value="计算机网络">计算机网络</option>
+                            <option value="操作系统">操作系统</option>
+                            <option value="数据库原理">数据库原理</option>
+                            <option value="高等数学">高等数学</option>
+                            <option value="线性代数">线性代数</option>
+                            <option value="大学英语">大学英语</option>
+                            <option value="Python编程">Python编程</option>
+                            <option value="人工智能导论">人工智能导论</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-bullseye"></i> 学习目标 <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="goal" rows="2"
+                                  placeholder="例如：掌握常见数据结构，能独立完成LeetCode中等难度题目"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-clock"></i> 可用时间 <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="availableTime"
+                               placeholder="例如：每天2小时，共4周">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-speedometer"></i> 当前水平
+                        </label>
+                        <select class="form-select" id="difficulty">
+                            <option value="入门">入门 - 零基础</option>
+                            <option value="中等" selected>中等 - 有一定基础</option>
+                            <option value="进阶">进阶 - 已掌握部分内容</option>
+                            <option value="冲刺">冲刺 - 查漏补缺</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100" id="generateBtn">
+                        <i class="bi bi-stars me-2"></i>AI生成学习计划
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：生成的计划 -->
+    <div class="col-lg-7">
+        <div class="card" id="planResultCard" style="display:none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-file-text"></i> 生成结果</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="copyPlan()">
+                        <i class="bi bi-copy"></i> 复制
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="plan-loading" id="planLoading">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <p class="text-muted">AI正在为你生成学习计划...</p>
+                    </div>
+                </div>
+                <div class="plan-content markdown-body" id="planContent"></div>
+            </div>
+        </div>
+
+        <!-- 历史计划 -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> 历史计划</h5>
+            </div>
+            <div class="card-body">
+                {% if plans %}
+                <div class="plan-list">
+                    {% for plan in plans %}
+                    <div class="plan-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6>{{ plan.title }}</h6>
+                                <p class="small text-muted mb-1">
+                                    <span class="badge bg-info me-1">{{ plan.subject }}</span>
+                                    创建于 {{ plan.created_at }}
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <div class="progress" style="width:120px;height:8px;">
+                                    <div class="progress-bar bg-success" style="width:{{ plan.progress }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ plan.progress }}%</small>
+                            </div>
+                        </div>
+                        <div class="plan-actions mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewPlan({{ plan.id }})">
+                                <i class="bi bi-eye"></i> 查看
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePlan({{ plan.id }})">
+                                <i class="bi bi-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size:3rem;"></i>
+                    <p class="mt-2">还没有学习计划，快生成一个吧！</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function generatePlan(e) {
+    e.preventDefault();
+
+    const subject = document.getElementById('subject').value.trim();
+    const goal = document.getElementById('goal').value.trim();
+    const availableTime = document.getElementById('availableTime').value.trim();
+    const difficulty = document.getElementById('difficulty').value;
+
+    if (!subject || !goal || !availableTime) {
+        alert('请填写所有必填字段！');
+        return;
+    }
+
+    // 显示结果卡片和加载动画
+    document.getElementById('planResultCard').style.display = 'block';
+    document.getElementById('planLoading').style.display = 'block';
+    document.getElementById('planContent').style.display = 'none';
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>生成中...';
+
+    try {
+        const res = await fetch('/api/generate-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, goal, available_time: availableTime, difficulty })
+        });
+        const data = await res.json();
+
+        document.getElementById('planLoading').style.display = 'none';
+        document.getElementById('planContent').style.display = 'block';
+
+        if (data.success) {
+            document.getElementById('planContent').innerHTML = marked.parse(data.plan.plan_content);
+            // 重新加载页面以显示历史计划
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            document.getElementById('planContent').innerHTML =
+                `<div class="alert alert-danger">${data.error}</div>`;
+        }
+    } catch (err) {
+        document.getElementById('planLoading').style.display = 'none';
+        document.getElementById('planContent').style.display = 'block';
+        document.getElementById('planContent').innerHTML =
+            `<div class="alert alert-danger">网络错误: ${err.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars me-2"></i>AI生成学习计划';
+    }
+}
+
+function copyPlan() {
+    const content = document.getElementById('planContent').innerText;
+    navigator.clipboard.writeText(content).then(() => {
+        alert('已复制到剪贴板！');
+    });
+}
+
+function viewPlan(id) {
+    fetch(`/api/plans/${id}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('planResultCard').style.display = 'block';
+                document.getElementById('planLoading').style.display = 'none';
+                document.getElementById('planContent').style.display = 'block';
+                document.getElementById('planContent').innerHTML = marked.parse(data.plan.plan_content);
+            }
+        });
+}
+
+function deletePlan(id) {
+    if (!confirm('确定删除这个学习计划吗？')) return;
+    fetch(`/api/plans/${id}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+        });
+}
+</script>
+{% endblock %}
