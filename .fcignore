@@ -1,0 +1,19 @@
+# 排除 Vue 子项目
+zhixuetong/
+
+# 排除不需要的文件
+.git/
+.gitignore
+.fcignore
+s.yaml
+README.md
+CLAUDE.md
+使用说明书.md
+演示视频脚本.md
+PPT大纲.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,6 +1,5 @@
 # ───────────────────────────────────────────
 # 阿里云函数计算 FC 部署配置 (Serverless Devs)
-# 需要先安装: npm i -g @serverless-devs/s
 # 部署命令: s deploy
 # ───────────────────────────────────────────
 edition: 1.0.0
@@ -49,13 +48,3 @@ services:
               - DELETE
               - PATCH
               - OPTIONS
-
-  # ── 静态资源托管 (前端) ──
-  zhixuetong-static:
-    component: website
-    props:
-      region: ${vars.region}
-      bucket: zhixuetong-static-assets
-      codeUri: ./static
-      index: index.html
-      error: 404.html
