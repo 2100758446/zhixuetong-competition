@@ -7,35 +7,42 @@ echo      ZhiXueTong - Setup
 echo ============================================
 echo.
 
-echo [1/3] Checking Python...
-python --version >nul 2>&1
+echo [1/3] Checking Node.js...
+node --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python not found! Please install Python 3.9+
-    echo Download: https://www.python.org/downloads/
+    echo [ERROR] Node.js not found! Please install Node.js 18+
+    echo Download: https://nodejs.org/
     pause
     exit /b 1
 )
-python --version
+node --version
 echo.
 
-echo [2/3] Upgrading pip...
-python -m pip install --upgrade pip -q
-echo.
-
-echo [3/3] Installing dependencies...
-pip install -r requirements.txt -q
+echo [2/3] Installing frontend dependencies...
+cd zhixuetong
+call npm install
 if %errorlevel% neq 0 (
-    echo [ERROR] Failed to install dependencies
+    echo [ERROR] Failed to install frontend dependencies
     pause
     exit /b 1
 )
-echo.
 
+echo [3/3] Installing backend dependencies...
+cd server
+call npm install
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to install backend dependencies
+    pause
+    exit /b 1
+)
+cd ..
+
+echo.
 echo ============================================
 echo   Setup complete!
 echo.
 echo   Run: double-click run.bat
-echo   URL: http://localhost:5000
+echo   URL: http://localhost:5173
 echo   Demo: demo / demo123
 echo ============================================
 echo.

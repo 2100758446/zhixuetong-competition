@@ -1,58 +1,61 @@
-# 🎓 智学通 (ZhiXueTong) - AI校园学习助手
+# 🎓 智学通 — AI 智能学习助手
 
-> **湖南省大学生程序设计竞赛 · 应用开发赛道 参赛作品**
+> 面向大学生的全栈 AI 学习平台，融合知识图谱、智能问答、学习计划与打卡系统。
 >
-> 一个集 **AI智能问答**、**学习计划生成**、**知识图谱可视化**、**笔记管理**于一体的综合性学习平台。
+> **湖南省大学生程序设计竞赛 · 应用开发赛道 参赛作品**
 
 ---
 
-## ✨ 核心功能
+## 🚀 快速开始（3 步）
 
-| 功能模块 | 说明 | 技术亮点 |
-|----------|------|----------|
-| 🤖 **AI智能问答** | 基于大语言模型的学习助手，支持Markdown、代码高亮 | DeepSeek API / 离线智能回复 |
-| 📋 **学习计划生成器** | AI根据目标自动生成详细学习计划 | 智能Prompt工程 |
-| 🧠 **知识图谱** | 交互式知识关系图，支持拖拽缩放 | ECharts力导向图 |
-| 📝 **学习笔记** | 在线笔记 + AI自动总结提炼 | Markdown编辑器 |
-| 📊 **学习仪表盘** | 学习数据可视化，进度追踪 | Chart.js图表 |
-| 👤 **用户系统** | 注册登录、个人数据隔离 | Flask Session |
-
----
-
-## 🚀 快速开始
-
-### 1. 环境要求
-- Python 3.9+
-- pip
-
-### 2. 安装依赖
 ```bash
+# 1. 进入项目目录
 cd zhixuetong
-pip install -r requirements.txt
+
+# 2. 安装依赖（前后端一次性安装）
+npm install
+cd server && npm install && cd ..
+
+# 3. （可选）配置 AI 功能
+#    如果不配置，AI 问答和知识图谱智能分析会提示"未配置"。
+#    其他功能（笔记、任务、打卡、图谱可视化）无需配置即可使用。
+#    cp server/.env.example server/.env
+#    然后编辑 server/.env 填入你的大模型 API Key。
+
+# 4. 一键启动
+npm run dev
 ```
 
-### 3. 配置AI API（可选）
-编辑 `config.py`，填入你的 API Key：
-```python
-AI_CONFIG = {
-    'api_key': 'your-deepseek-api-key',  # 填入你的Key
-    # ...
-}
-```
+浏览器打开 **http://localhost:5173**，使用内置账号登录：
 
-> 💡 **不配置API Key也能使用！** 系统内置了智能回复系统，所有功能在离线模式下正常运行。
+| 用户名 | 密码 |
+|--------|------|
+| `demo` | `demo123` |
 
-> 🔑 免费API Key获取：访问 https://platform.deepseek.com/ 注册即送免费额度。
+---
 
-### 4. 启动应用
-```bash
-python app.py
-```
+## 🧠 功能模块
 
-### 5. 打开浏览器
-访问 **http://localhost:5000**
+| 模块 | 功能 | 亮点 |
+|------|------|------|
+| **仪表盘** | 打卡系统、日历热力图、周趋势统计 | 手动/自动打卡、streak 连续天数 |
+| **AI 智能问答** | 多轮对话、上下文持久化 | Markdown 渲染 + 代码高亮 + 数学公式 |
+| **学习计划** | 任务管理、学科分组、倒计时 | 日/周/列表三视图、每日/每周/每月重复 |
+| **知识图谱** | 力导向图可视化、拖拽缩放 | AI 自动提取概念 + 发现语义关联 |
+| **学习笔记** | 树形笔记、Wiki `[[链接]]` | 反向链接、AI 概念标签、浏览历史 |
 
-演示账号: `demo` / `demo123`
+---
+
+## 🛠 技术栈
+
+| 层 | 技术 |
+|----|------|
+| 前端 | Vue 3.5 + TypeScript + Vite 8 + Tailwind CSS 4 + Pinia 3 + Vue Router 4 |
+| 图表 | ECharts 6（力导向图、日历热力图、柱状图、环形图） |
+| 后端 | Node.js + Express 5 |
+| 数据库 | SQLite（better-sqlite3 风格封装，sql.js WASM 引擎） |
+| AI | OpenAI 兼容 API（支持 DeepSeek / OpenAI / 任何兼容服务） |
+| 安全 | bcryptjs 密码哈希、参数化查询防注入、密钥零暴露 |
 
 ---
 
@@ -60,57 +63,41 @@ python app.py
 
 ```
 zhixuetong/
-├── app.py                    # Flask主应用（路由、数据库模型、API）
-├── config.py                 # 配置文件（API密钥、知识图谱数据）
-├── ai_service.py             # AI服务模块（多平台API + 离线模式）
-├── requirements.txt          # Python依赖
-├── data/                     # SQLite数据库文件
-├── static/
-│   ├── css/style.css         # 主样式表（现代化UI设计）
-│   ├── js/main.js            # 全局JavaScript功能
-│   ├── js/chat.js            # AI聊天交互逻辑
-│   └── js/knowledge.js       # 知识图谱可视化
-├── templates/
-│   ├── base.html             # 基础布局（侧边栏、导航栏）
-│   ├── login.html            # 登录页面
-│   ├── register.html         # 注册页面
-│   ├── dashboard.html        # 学习仪表盘
-│   ├── chat.html             # AI智能问答
-│   ├── planner.html          # 学习计划生成器
-│   ├── knowledge.html        # 知识图谱
-│   ├── notes.html            # 学习笔记
-│   ├── 404.html / 500.html   # 错误页面
-├── README.md                 # 项目说明
-├── 使用说明书.md              # 详细使用手册
-├── setup.bat                 # Windows一键安装脚本
-└── run.bat                   # Windows一键启动脚本
+├── src/                    # 前端源码
+│   ├── views/              # 5 个页面视图
+│   ├── components/         # AppLayout 布局
+│   ├── stores/             # Pinia 状态管理（auth/chat/nav）
+│   └── router/             # Vue Router 路由 + 导航守卫
+├── server/                 # 后端源码
+│   ├── index.js            # Express API 路由（30+ 端点）
+│   ├── userStore.js        # 数据访问层（纯 SQL）
+│   ├── db.js               # SQLite 封装（自动 camelCase + 持久化）
+│   ├── seed.js             # 种子数据脚本
+│   └── zhixuetong.db       # SQLite 数据库（含预置演示数据）
+└── package.json
 ```
 
 ---
 
-## 🛠️ 技术栈
+## 🎯 设计亮点
 
-| 层级 | 技术 | 说明 |
-|------|------|------|
-| **后端框架** | Flask 3.x | Python Web框架 |
-| **数据库** | SQLite + SQLAlchemy | 轻量级关系数据库 |
-| **前端UI** | Bootstrap 5 | 响应式CSS框架 |
-| **图表** | Chart.js + ECharts | 统计图表 + 知识图谱 |
-| **AI** | DeepSeek / 智谱 / 通义千问 | 大语言模型API |
-| **Markdown** | marked.js | Markdown渲染 |
+- **AI 增量分析**：只分析新增/修改笔记，重复分析秒级跳过，分批处理防超时
+- **知识图谱自动构建**：树结构父子边 + Wiki 链接边 + AI 语义关联边，三层叠加
+- **Snake→Camel 透明转换**：数据库 snake_case 列名，JS 层自动转 camelCase，前端零感知
+- **SQL 安全**：全部参数化查询，零字符串拼接；动态 SET 子句防注入
+- **ON CONFLICT UPSERT**：打卡和 AI 分析使用 SQLite 原生的幂等写入
+- **级联删除**：学科 → 任务 → 完成记录三级联，笔记 → 递归子孙删除
 
 ---
 
-## 🏆 项目亮点
+## 📦 环境要求
 
-1. **AI深度融合**：不仅在对话中使用AI，学习计划、笔记总结也由AI驱动
-2. **离线可用**：即使没有API Key，内置智能回复系统保证所有功能正常运行
-3. **知识图谱可视化**：ECharts力导向图直观展示知识体系，支持交互探索
-4. **完整的产品设计**：从用户注册到数据管理，是一个真正可用的产品
-5. **跨平台API支持**：兼容DeepSeek、智谱AI、通义千问等多个大模型平台
+- **Node.js** ≥ 18
+- **npm** ≥ 9
+- （可选）大模型 API Key，推荐 [DeepSeek](https://platform.deepseek.com) 或 OpenAI 兼容服务
 
 ---
 
-## 📄 许可证
+## 📄 许可
 
-本项目为湖南省大学生程序设计竞赛参赛作品，仅供学习交流使用。
+本作品为参赛项目，仅供评审使用。
